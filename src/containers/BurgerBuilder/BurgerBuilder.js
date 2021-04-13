@@ -1,10 +1,12 @@
 import React, { Component } from 'react'
 import Aux from '../../hoc/Aux/Aux'
+import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler'
 
 import Burger from '../../components/Burger/Burger'
 import BuildControls from '../../components/Burger/BuildControls/BuildControls'
 import Modal from '../../components/UI/Modal/Modal'
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary'
+import Spinner from '../../components/UI/Spinner/Spinner'
 // this will use our personalized axios instance from the file
 import axios from '../../axios-orders'
 
@@ -31,7 +33,8 @@ class BurgerBuilder extends Component {
     },
     totalPrice: 4,
     canPurchase: false,
-    purchasing: false
+    purchasing: false,
+    loading: false
   }
 
   updatePurchaseState (ingredients) {
@@ -85,6 +88,7 @@ purchaseCancelHandler = () => {
 }
 
 purchaseContinueHandler = () => {
+  this.setState( { loading: true } )
   // alert('you continue!')
   //this is a sample, in reality price should be calc on backend
   const order ={
@@ -104,8 +108,12 @@ purchaseContinueHandler = () => {
 
   // .json is firebase specific, would just be orders w other hosts
   axios.post('/orders.json', order)
-  .then(res => console.log(res))
-  .catch(error => console.log(error))
+  .then(res => {
+      this.setState({ loading: false, purchasing: false })
+    })
+  .catch(error => {
+        this.setState({ loading: false, purchasing: false })
+      })
 }
 
   render () {
@@ -115,13 +123,17 @@ purchaseContinueHandler = () => {
     for (let key in disabledInfo) {
       disabledInfo[key] = disabledInfo[key] <= 0
     }
-    return (
-      <Aux>
-      <Modal show={this.state.purchasing} modalClosed={this.purchaseCancelHandler}>
-        <OrderSummary ingredients={this.state.ingredients}
+    let orderSummary = <OrderSummary ingredients={this.state.ingredients}
         cancelled={this.purchaseCancelHandler}
         continue={this.purchaseContinueHandler}
         price={this.state.totalPrice}/>
+    if (this.state.loading) {
+      orderSummary = <Spinner />
+    }
+    return (
+      <Aux>
+      <Modal show={this.state.purchasing} modalClosed={this.purchaseCancelHandler}>
+        {orderSummary}
       </Modal>
       <Burger ingredients={this.state.ingredients} />
         <BuildControls
@@ -136,4 +148,4 @@ purchaseContinueHandler = () => {
   }
 }
 
-export default BurgerBuilder
+export default withErrorHandler(BurgerBuilder, axios)
