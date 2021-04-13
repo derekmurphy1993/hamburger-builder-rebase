@@ -5,6 +5,8 @@ import Burger from '../../components/Burger/Burger'
 import BuildControls from '../../components/Burger/BuildControls/BuildControls'
 import Modal from '../../components/UI/Modal/Modal'
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary'
+// this will use our personalized axios instance from the file
+import axios from '../../axios-orders'
 
 const INGREDIENT_PRICES = {
   salad: 0.5,
@@ -83,7 +85,27 @@ purchaseCancelHandler = () => {
 }
 
 purchaseContinueHandler = () => {
-  alert('you continue!')
+  // alert('you continue!')
+  //this is a sample, in reality price should be calc on backend
+  const order ={
+    ingredients: this.state.ingredients,
+    price: this.state.totalPrice,
+    customer: {
+      name: "Danny Dog",
+      address: {
+        street: 'yehaw ave',
+        zipCode: '10001',
+        country: 'USA'
+      },
+      email: 'test@test'
+    },
+    deliveryMethod: 'ASAP'
+  }
+
+  // .json is firebase specific, would just be orders w other hosts
+  axios.post('/orders.json', order)
+  .then(res => console.log(res))
+  .catch(error => console.log(error))
 }
 
   render () {
